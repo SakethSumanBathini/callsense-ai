@@ -108,19 +108,19 @@ Indian call centers handle millions of conversations daily in Hinglish (Hindi-En
 
 ## Tech Stack
 
-| Layer | Technology | Why This Choice |
-|:------|:-----------|:---------------|
-| **Framework** | FastAPI (Python 3.12) | Async, auto-docs, Pydantic native, fastest Python framework |
-| **Primary ASR** | Sarvam AI Saaras v3 | #1 for Indian languages — 19.3% WER, native Hinglish/Tanglish |
-| **Fallback ASR** | Groq Whisper Large v3 | 216x real-time speed, automatic failover |
-| **Primary LLM** | Google Gemini 2.5 Flash | Best free-tier reasoning, 1M context window |
-| **LLM Fallbacks** | Groq Llama 3.3 70B, OpenRouter, NVIDIA NIMs | Zero-downtime guarantee across 4 providers |
-| **Vector DB** | ChromaDB | Lightweight, Python-native, semantic search ready |
-| **Audio** | pydub + FFmpeg | Robust base64 decode, format handling, chunking |
-| **Validation** | Pydantic v2 Literal types | Schema enforcement — invalid responses impossible |
-| **Async Tasks** | Celery + Redis | Async voice processing support |
-| **Deployment** | Docker + Railway/Render | One-command containerized deployment |
-| **Frontend** | HTML/CSS/JS + Chart.js + Tailwind | Zero-dependency dashboard |
+| Layer             | Technology                                  | Why This Choice                                               |
+| :---------------- | :------------------------------------------ | :------------------------------------------------------------ |
+| **Framework**     | FastAPI (Python 3.12)                       | Async, auto-docs, Pydantic native, fastest Python framework   |
+| **Primary ASR**   | Sarvam AI Saaras v3                         | #1 for Indian languages — 19.3% WER, native Hinglish/Tanglish |
+| **Fallback ASR**  | Groq Whisper Large v3                       | 216x real-time speed, automatic failover                      |
+| **Primary LLM**   | Google Gemini 2.5 Flash                     | Best free-tier reasoning, 1M context window                   |
+| **LLM Fallbacks** | Groq Llama 3.3 70B, OpenRouter, NVIDIA NIMs | Zero-downtime guarantee across 4 providers                    |
+| **Vector DB**     | ChromaDB                                    | Lightweight, Python-native, semantic search ready             |
+| **Audio**         | pydub + FFmpeg                              | Robust base64 decode, format handling, chunking               |
+| **Validation**    | Pydantic v2 Literal types                   | Schema enforcement — invalid responses impossible             |
+| **Async Tasks**   | Celery + Redis                              | Async voice processing support                                |
+| **Deployment**    | Docker + Render                             | One-command containerized deployment                          |
+| **Frontend**      | HTML/CSS/JS + Chart.js + Tailwind           | Zero-dependency dashboard                                     |
 
 ---
 
@@ -177,7 +177,7 @@ callsense-ai/
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/callsense-ai.git
+git clone https://github.com/SakethSumanBathini/callsense-ai.git
 cd callsense-ai
 python -m venv venv
 source venv/bin/activate        # Linux/Mac
@@ -206,12 +206,12 @@ cp .env.example .env
 # Edit .env with your keys
 ```
 
-| Key | Where to Get (Free) |
-|:----|:--------------------|
-| `SARVAM_API_KEY` | [dashboard.sarvam.ai](https://dashboard.sarvam.ai) |
+| Key              | Where to Get (Free)                                       |
+| :--------------- | :-------------------------------------------------------- |
+| `SARVAM_API_KEY` | [dashboard.sarvam.ai](https://dashboard.sarvam.ai)        |
 | `GEMINI_API_KEY` | [aistudio.google.com](https://aistudio.google.com/apikey) |
-| `GROQ_API_KEY` | [console.groq.com](https://console.groq.com) |
-| `API_SECRET_KEY` | Choose any secret key for API auth |
+| `GROQ_API_KEY`   | [console.groq.com](https://console.groq.com)              |
+| `API_SECRET_KEY` | Choose any secret key for API auth                        |
 
 ### 4. Run
 
@@ -309,15 +309,15 @@ curl -X POST https://your-domain.com/api/call-analytics \
 
 ### All Endpoints
 
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `POST` | `/api/call-analytics` | Main analysis endpoint |
-| `GET` | `/` | API info |
-| `GET` | `/health` | Health check with provider status |
-| `GET` | `/dashboard` | Interactive analytics dashboard |
-| `GET` | `/api/search?q=query` | Semantic search across transcripts |
-| `GET` | `/api/stats` | Vector store statistics |
-| `GET` | `/docs` | Auto-generated API documentation (Swagger) |
+| Method | Endpoint              | Description                                |
+| :----- | :-------------------- | :----------------------------------------- |
+| `POST` | `/api/call-analytics` | Main analysis endpoint                     |
+| `GET`  | `/`                   | API info                                   |
+| `GET`  | `/health`             | Health check with provider status          |
+| `GET`  | `/dashboard`          | Interactive analytics dashboard            |
+| `GET`  | `/api/search?q=query` | Semantic search across transcripts         |
+| `GET`  | `/api/stats`          | Vector store statistics                    |
+| `GET`  | `/docs`               | Auto-generated API documentation (Swagger) |
 
 ---
 
@@ -349,35 +349,35 @@ Every LLM output passes through a validation layer:
 
 ## Edge Cases & Failure Handling
 
-| Scenario | How We Handle It |
-|:---------|:-----------------|
-| Missing or invalid API key | Returns 401 Unauthorized immediately |
-| Malformed base64 audio | Handles data URL prefixes, URL-safe encoding, padding issues |
-| Audio longer than 30 seconds | Auto-chunks into 29s segments with 500ms overlap, stitches transcripts |
-| Very short audio (<5s) | Processes as single chunk without splitting |
-| Sarvam AI down/timeout | Auto-fallback to Groq Whisper Large v3 with retry logic |
-| Gemini rate limited | Auto-fallback: Groq → OpenRouter → NVIDIA NIMs |
-| LLM returns wrong enum value | Normalizer maps to closest valid enum (e.g., "installment" → "EMI") |
-| LLM returns malformed JSON | Parser handles markdown fences, Python booleans, nested objects, extra text |
-| Empty or garbage transcript | Returns valid response structure with default values and explanation |
-| All ASR providers fail | Returns valid JSON with error message — never crashes, never returns invalid schema |
-| All LLM providers fail | Keyword-based fallback analysis extracts SOP/payment/sentiment from transcript patterns |
-| Concurrent requests | FastAPI async handles multiple requests, each gets unique call_id for tracking |
-| Network interruption mid-chunk | Retry with exponential backoff (1s → 2s → 4s), max 3 retries per chunk |
+| Scenario                       | How We Handle It                                                                        |
+| :----------------------------- | :-------------------------------------------------------------------------------------- |
+| Missing or invalid API key     | Returns 401 Unauthorized immediately                                                    |
+| Malformed base64 audio         | Handles data URL prefixes, URL-safe encoding, padding issues                            |
+| Audio longer than 30 seconds   | Auto-chunks into 29s segments with 500ms overlap, stitches transcripts                  |
+| Very short audio (<5s)         | Processes as single chunk without splitting                                             |
+| Sarvam AI down/timeout         | Auto-fallback to Groq Whisper Large v3 with retry logic                                 |
+| Gemini rate limited            | Auto-fallback: Groq → OpenRouter → NVIDIA NIMs                                          |
+| LLM returns wrong enum value   | Normalizer maps to closest valid enum (e.g., "installment" → "EMI")                     |
+| LLM returns malformed JSON     | Parser handles markdown fences, Python booleans, nested objects, extra text             |
+| Empty or garbage transcript    | Returns valid response structure with default values and explanation                    |
+| All ASR providers fail         | Returns valid JSON with error message — never crashes, never returns invalid schema     |
+| All LLM providers fail         | Keyword-based fallback analysis extracts SOP/payment/sentiment from transcript patterns |
+| Concurrent requests            | FastAPI async handles multiple requests, each gets unique call_id for tracking          |
+| Network interruption mid-chunk | Retry with exponential backoff (1s → 2s → 4s), max 3 retries per chunk                  |
 
 ---
 
 ## AI Tools Used
 
-| Tool | Purpose | How Used |
-|:-----|:--------|:---------|
-| **Claude (Anthropic)** | Development assistance | Code scaffolding, architecture design, prompt engineering, debugging |
-| **Sarvam AI Saaras v3** | Speech-to-Text | Production ASR engine — transcribes Hinglish/Tanglish call recordings |
-| **Google Gemini 2.5 Flash** | NLP Analysis | Primary LLM — SOP validation, payment classification, summarization, sentiment |
-| **Groq Llama 3.3 70B** | Fallback LLM | Secondary analysis engine activated when Gemini is unavailable |
-| **Groq Whisper Large v3** | Fallback ASR | Backup transcription engine activated when Sarvam is unavailable |
-| **OpenRouter** | Tertiary LLM | Additional fallback LLM provider for maximum reliability |
-| **ChromaDB** | Vector Storage | Semantic indexing and search of call transcripts using embeddings |
+| Tool                        | Purpose                | How Used                                                                       |
+| :-------------------------- | :--------------------- | :----------------------------------------------------------------------------- |
+| **Claude (Anthropic)**      | Development assistance | Code scaffolding, architecture design, prompt engineering, debugging           |
+| **Sarvam AI Saaras v3**     | Speech-to-Text         | Production ASR engine — transcribes Hinglish/Tanglish call recordings          |
+| **Google Gemini 2.5 Flash** | NLP Analysis           | Primary LLM — SOP validation, payment classification, summarization, sentiment |
+| **Groq Llama 3.3 70B**      | Fallback LLM           | Secondary analysis engine activated when Gemini is unavailable                 |
+| **Groq Whisper Large v3**   | Fallback ASR           | Backup transcription engine activated when Sarvam is unavailable               |
+| **OpenRouter**              | Tertiary LLM           | Additional fallback LLM provider for maximum reliability                       |
+| **ChromaDB**                | Vector Storage         | Semantic indexing and search of call transcripts using embeddings              |
 
 > All AI tools are used as API services. No model training or fine-tuning was performed. All analysis is generated dynamically from the provided audio input — zero hardcoded responses.
 
@@ -385,13 +385,13 @@ Every LLM output passes through a validation layer:
 
 ## Performance
 
-| Metric | Value |
-|:-------|:------|
-| Average response time | 15-45 seconds (depends on audio length + API latency) |
-| Max audio duration | Up to 1 hour (chunked processing) |
-| Supported audio formats | MP3, WAV, AAC, OGG, FLAC, M4A, WebM, AIFF, AMR, WMA |
-| Languages | Hindi (Hinglish), Tamil (Tanglish) + 20 more Indian languages via Sarvam |
-| Schema compliance | 100% — Pydantic Literal types make invalid responses impossible |
+| Metric                  | Value                                                                    |
+| :---------------------- | :----------------------------------------------------------------------- |
+| Average response time   | 15-45 seconds (depends on audio length + API latency)                    |
+| Max audio duration      | Up to 1 hour (chunked processing)                                        |
+| Supported audio formats | MP3, WAV, AAC, OGG, FLAC, M4A, WebM, AIFF, AMR, WMA                      |
+| Languages               | Hindi (Hinglish), Tamil (Tanglish) + 20 more Indian languages via Sarvam |
+| Schema compliance       | 100% — Pydantic Literal types make invalid responses impossible          |
 
 ---
 
