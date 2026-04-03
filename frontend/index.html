@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CallSense AI — Call Center Compliance Analytics</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0F14;--bg2:#111827;--bg3:#1F2937;--bdr:rgba(55,65,81,.5);--g:#4ADE80;--gg:rgba(74,222,128,.15);--gd:rgba(74,222,128,.08);--r:#EF4444;--a:#F59E0B;--v:#A78BFA;--b:#3B82F6;--t1:#F9FAFB;--t2:#9CA3AF;--t3:#6B7280}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}.display{font-family:'Playfair Display',serif}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--t3);border-radius:3px}
+.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:14px;transition:all .2s}.card:hover{border-color:rgba(74,222,128,.2);box-shadow:0 0 20px var(--gd)}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;letter-spacing:.4px}
+.bg-g{background:rgba(74,222,128,.12);color:var(--g)}.bg-r{background:rgba(239,68,68,.12);color:var(--r)}.bg-a{background:rgba(245,158,11,.12);color:var(--a)}.bg-v{background:rgba(167,139,250,.12);color:var(--v)}.bg-b{background:rgba(59,130,246,.12);color:var(--b)}
+.btn-p{background:var(--g);color:var(--bg);font-weight:600;padding:12px 28px;border-radius:10px;border:none;cursor:pointer;font-size:14px;transition:all .15s}.btn-p:hover{transform:scale(1.03);box-shadow:0 0 24px var(--gg)}.btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-s{background:var(--bg3);color:var(--t1);font-weight:500;padding:10px 20px;border-radius:10px;border:1px solid var(--bdr);cursor:pointer;font-size:13px;transition:all .15s}.btn-s:hover{border-color:var(--g)}
+.tab{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;color:var(--t2);background:0;border:0;cursor:pointer;transition:all .2s}.tab:hover{color:var(--t1);background:var(--bg3)}.tab.on{color:var(--g);background:var(--gd)}
+.dropzone{border:2px dashed var(--t3);border-radius:16px;transition:all .3s;cursor:pointer}.dropzone:hover,.dropzone.drag{border-color:var(--g);background:var(--gd)}
+.tl{padding:8px 12px;border-left:3px solid transparent;transition:all .2s;cursor:pointer;border-radius:0 8px 8px 0}.tl:hover{background:var(--gd);border-left-color:var(--g)}.tl.ag{border-left-color:rgba(74,222,128,.3)}.tl.cu{border-left-color:rgba(167,139,250,.3)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.4)}50%{box-shadow:0 0 0 8px rgba(74,222,128,0)}}
+.anim{animation:fadeUp .5s ease forwards;opacity:0}
+.step{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .3s}
+.step-on{background:var(--gd);border:2px solid var(--g);color:var(--g);animation:pulse 1.5s infinite}
+.step-ok{background:var(--g);color:var(--bg)}.step-wait{background:var(--bg3);border:2px solid var(--bdr);color:var(--t3)}
+.gauge-circle{transition:stroke-dashoffset 1.5s ease}
+body::before{content:'';position:fixed;inset:0;opacity:.015;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");z-index:9999}
+.hero-grid{background-image:linear-gradient(rgba(74,222,128,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(74,222,128,.03) 1px,transparent 1px);background-size:60px 60px}
+</style>
+</head>
+<body>
+<div id="app">
+<!-- NAV -->
+<nav class="fixed top-0 left-0 right-0 z-50" style="background:rgba(10,15,20,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr)">
+<div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:var(--g)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0F14" stroke-width="2.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+<span class="display text-base font-bold tracking-tight">CallSense<span style="color:var(--g)">AI</span></span>
+<span class="badge bg-v ml-2 text-[10px]">v2.0</span>
+</div>
+<div class="flex items-center gap-1"><button onclick="nav('land')" class="tab on" id="n-land">Home</button><button onclick="nav('anal')" class="tab" id="n-anal">Analyze</button><button onclick="nav('dash')" class="tab" id="n-dash">Dashboard</button></div>
+<span class="badge bg-g">● Live</span>
+</div>
+</nav>
+
+<!-- LANDING -->
+<div id="v-land" class="v pt-14">
+<div class="hero-grid min-h-[85vh] flex flex-col items-center justify-center px-6 text-center relative">
+<div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-20" style="background:radial-gradient(circle,var(--g) 0%,transparent 70%);filter:blur(80px)"></div>
+<div class="relative z-10 anim" style="animation-delay:.1s"><div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-8" style="background:var(--gd);border:1px solid rgba(74,222,128,.2)"><span class="w-2 h-2 rounded-full animate-pulse" style="background:var(--g)"></span><span class="text-xs font-medium" style="color:var(--g)">HCL GUVI Hackathon 2026 — Track 3</span></div></div>
+<h1 class="display text-5xl md:text-7xl font-black max-w-4xl leading-tight relative z-10 anim" style="animation-delay:.2s">Every Call Tells a Story.<br><span style="color:var(--g)">We Help You Read It.</span></h1>
+<p class="mt-6 text-lg max-w-2xl anim" style="color:var(--t2);animation-delay:.3s">AI-powered compliance analytics for India's Hinglish and Tanglish call centers. Transcribe, validate, and extract intelligence from every conversation.</p>
+<div class="mt-10 flex gap-4 anim" style="animation-delay:.4s"><button onclick="nav('anal')" class="btn-p text-base px-8 py-3.5">Analyze a Call →</button><button onclick="nav('dash')" class="btn-s text-base">View Dashboard</button></div>
+<div class="mt-16 flex flex-wrap justify-center gap-4 anim" style="animation-delay:.5s">
+<div class="card px-5 py-3 flex items-center gap-3"><span class="text-2xl">🇮🇳</span><div class="text-left"><div class="text-sm font-semibold">22 Indian Languages</div><div class="text-xs" style="color:var(--t3)">Hinglish & Tanglish native</div></div></div>
+<div class="card px-5 py-3 flex items-center gap-3"><span class="text-2xl">🎯</span><div class="text-left"><div class="text-sm font-semibold">Multi-Dimensional Scoring</div><div class="text-xs" style="color:var(--t3)">Empathy • Professionalism • Listening</div></div></div>
+<div class="card px-5 py-3 flex items-center gap-3"><span class="text-2xl">🧠</span><div class="text-left"><div class="text-sm font-semibold">AI Coaching Engine</div><div class="text-xs" style="color:var(--t3)">Personalized agent recommendations</div></div></div>
+<div class="card px-5 py-3 flex items-center gap-3"><span class="text-2xl">🛡️</span><div class="text-left"><div class="text-sm font-semibold">Risk Detection</div><div class="text-xs" style="color:var(--t3)">Escalation & churn alerts</div></div></div>
+</div></div></div>
+
+<!-- ANALYZE -->
+<div id="v-anal" class="v pt-20 px-6 hidden"><div class="max-w-6xl mx-auto">
+<div id="up-sec">
+<h2 class="display text-3xl font-bold mb-2">Analyze a Call</h2>
+<p class="mb-8" style="color:var(--t2)">Upload an MP3 recording to get instant compliance analytics with AI coaching.</p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="md:col-span-2"><div class="dropzone p-12 text-center" id="dz" ondrop="hDrop(event)" ondragover="hOver(event)" ondragleave="hLeave(event)">
+<div class="text-4xl mb-4">🎙️</div><p class="font-semibold mb-1">Drop your MP3 file here</p><p class="text-sm mb-4" style="color:var(--t3)">or click to browse</p>
+<input type="file" id="af" accept=".mp3,audio/mpeg,audio/*" class="hidden" onchange="hFile(event)">
+<button onclick="document.getElementById('af').click()" class="btn-s text-sm">Browse Files</button>
+<p class="mt-3 text-xs" style="color:var(--t3)" id="fi"></p>
+</div></div>
+<div class="card p-6">
+<h3 class="font-semibold mb-4 text-sm uppercase tracking-wider" style="color:var(--t3)">Settings</h3>
+<label class="block mb-2 text-sm font-medium">Language</label>
+<select id="lang" class="w-full p-2.5 rounded-lg text-sm" style="background:var(--bg3);border:1px solid var(--bdr);color:var(--t1)"><option value="Hindi">Hindi (Hinglish)</option><option value="Tamil">Tamil (Tanglish)</option><option value="English">English</option><option value="Bengali">Bengali</option><option value="Telugu">Telugu</option><option value="Kannada">Kannada</option><option value="Malayalam">Malayalam</option><option value="Marathi">Marathi</option></select>
+<label class="block mt-4 mb-2 text-sm font-medium">API Endpoint</label>
+<input id="api-url" type="text" value="http://localhost:8000" class="w-full p-2.5 rounded-lg text-sm mono" style="background:var(--bg3);border:1px solid var(--bdr);color:var(--t1)">
+<label class="block mt-4 mb-2 text-sm font-medium">API Key</label>
+<input id="api-key" type="password" value="sk_track3_987654321" class="w-full p-2.5 rounded-lg text-sm mono" style="background:var(--bg3);border:1px solid var(--bdr);color:var(--t1)">
+<button onclick="analyze()" id="abtn" class="btn-p w-full mt-6" disabled>Analyze Call</button>
+</div></div></div>
+
+<!-- Processing -->
+<div id="proc-sec" class="hidden mt-8"><div class="card p-8">
+<h3 class="font-semibold mb-6">Processing Call...</h3>
+<div class="flex items-center gap-4 mb-6"><div class="step step-on" id="s1">1</div><div class="flex-1 h-0.5" style="background:var(--bdr)"></div><div class="step step-wait" id="s2">2</div><div class="flex-1 h-0.5" style="background:var(--bdr)"></div><div class="step step-wait" id="s3">3</div><div class="flex-1 h-0.5" style="background:var(--bdr)"></div><div class="step step-wait" id="s4">4</div></div>
+<div class="flex justify-between text-xs" style="color:var(--t3)"><span>Decoding</span><span>Transcribing</span><span>Analyzing</span><span>Coaching</span></div>
+<div class="mt-6 text-center"><div class="inline-block w-5 h-5 border-2 border-t-transparent rounded-full" style="border-color:var(--g);border-top-color:transparent;animation:spin 1s linear infinite"></div><p class="mt-2 text-sm" style="color:var(--t2)" id="pstat">Decoding audio...</p></div>
+</div></div>
+
+<!-- RESULTS -->
+<div id="res-sec" class="hidden mt-8 pb-20">
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+<div class="flex items-center gap-4"><h2 class="display text-2xl font-bold">Analysis Results</h2><span class="badge bg-g">✓ Success</span></div>
+<div class="flex gap-2"><button onclick="dlJSON()" class="btn-s text-xs">📥 Export JSON</button><button onclick="reset()" class="btn-s text-xs">🔄 New Analysis</button></div>
+</div>
+
+<!-- Top KPIs with circular gauge -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+<div class="card p-5 flex flex-col items-center justify-center">
+<p class="text-xs font-medium uppercase tracking-wider mb-3" style="color:var(--t3)">Compliance</p>
+<div class="relative" style="width:90px;height:90px">
+<svg viewBox="0 0 100 100" class="w-full h-full -rotate-90"><circle cx="50" cy="50" r="42" fill="none" stroke="var(--bg3)" stroke-width="8"/><circle cx="50" cy="50" r="42" fill="none" stroke="var(--g)" stroke-width="8" stroke-linecap="round" stroke-dasharray="264" class="gauge-circle" id="gauge-circle" style="stroke-dashoffset:264"/></svg>
+<div class="absolute inset-0 flex items-center justify-center"><span class="mono text-xl font-bold" style="color:var(--g)" id="gauge-pct">0%</span></div>
+</div>
+<span class="badge mt-2" id="adh-badge">—</span>
+</div>
+<div class="card p-5 text-center"><p class="text-xs font-medium uppercase tracking-wider mb-2" style="color:var(--t3)">Sentiment</p><div class="text-3xl mb-1" id="kpi-sent-e">—</div><p class="text-sm" style="color:var(--t2)" id="kpi-sent-t">—</p></div>
+<div class="card p-5 text-center"><p class="text-xs font-medium uppercase tracking-wider mb-2" style="color:var(--t3)">Payment</p><div class="text-lg font-bold" style="color:var(--v)" id="kpi-pay">—</div><p class="text-sm mt-1" style="color:var(--t2)" id="kpi-rej">—</p></div>
+<div class="card p-5 text-center"><p class="text-xs font-medium uppercase tracking-wider mb-2" style="color:var(--t3)">Quality</p><div class="mono text-2xl font-bold" style="color:var(--b)" id="kpi-qual">—</div><span class="badge mt-1" id="kpi-qual-lbl">—</span></div>
+<div class="card p-5 text-center"><p class="text-xs font-medium uppercase tracking-wider mb-2" style="color:var(--t3)">Risk</p><div class="text-2xl font-bold" id="kpi-risk">—</div><p class="text-sm mt-1" style="color:var(--t2)" id="kpi-risk-sub">—</p></div>
+</div>
+
+<!-- Main: Transcript + Analysis -->
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+<div class="lg:col-span-3 space-y-4">
+<!-- Audio Player -->
+<div class="card p-4" id="audio-player-card" style="display:none"><audio id="audio-el" controls class="w-full" style="height:40px;filter:invert(1) hue-rotate(180deg)"></audio></div>
+<!-- Transcript -->
+<div class="card p-0 overflow-hidden">
+<div class="p-4 flex items-center justify-between" style="border-bottom:1px solid var(--bdr)"><h3 class="font-semibold text-sm">📝 Transcript</h3><span class="mono text-xs" style="color:var(--t3)" id="tlen">0 chars</span></div>
+<div class="p-4 max-h-[400px] overflow-y-auto" id="tbox"></div>
+</div>
+<!-- Summary -->
+<div class="card p-5"><h3 class="font-semibold text-sm mb-3">📋 Summary</h3><p class="text-sm leading-relaxed" style="color:var(--t2)" id="sum-text"></p></div>
+</div>
+
+<div class="lg:col-span-2 space-y-4">
+<!-- SOP -->
+<div class="card p-5"><h3 class="font-semibold text-sm mb-4">✅ SOP Compliance</h3><div class="space-y-2" id="sop-list"></div><div class="mt-3 p-3 rounded-lg text-sm" style="background:var(--gd);border:1px solid rgba(74,222,128,.15)"><p id="sop-exp" style="color:var(--t2)"></p></div></div>
+<!-- Quality Scorecard -->
+<div class="card p-5"><h3 class="font-semibold text-sm mb-4">🎯 Quality Scorecard</h3><div class="space-y-3" id="q-scores"></div></div>
+<!-- Keywords -->
+<div class="card p-5"><h3 class="font-semibold text-sm mb-3">🏷️ Keywords</h3><div class="flex flex-wrap gap-2" id="kw-box"></div></div>
+</div></div>
+
+<!-- Extended Analytics Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6" id="ext-row" style="display:none">
+<!-- Risk -->
+<div class="card p-5">
+<h4 class="font-semibold text-sm mb-3">🛡️ Risk Assessment</h4>
+<div class="flex items-center gap-3 mb-3"><div class="w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold" id="risk-box" style="background:rgba(74,222,128,.1);color:var(--g)">LOW</div><div><p class="text-sm font-medium" id="risk-sc">Score: 0/100</p><p class="text-xs" style="color:var(--t3)" id="risk-esc">Escalation: 0%</p></div></div>
+<div id="risk-trigs" class="hidden"><p class="text-xs font-medium mb-1" style="color:var(--t3)">TRIGGERS:</p><div class="flex flex-wrap gap-1" id="risk-tl"></div></div>
+<div id="risk-ok" class="text-sm" style="color:var(--t2)">✅ No risk signals detected</div>
+</div>
+<!-- Talk Patterns -->
+<div class="card p-5">
+<h4 class="font-semibold text-sm mb-3">🗣️ Talk Patterns</h4>
+<div class="space-y-2 mb-3">
+<div><div class="flex justify-between text-xs mb-1"><span style="color:var(--g)">Agent</span><span class="mono" id="ag-pct">—%</span></div><div class="w-full h-2.5 rounded-full" style="background:var(--bg3)"><div class="h-2.5 rounded-full transition-all duration-1000" id="ag-bar" style="background:var(--g);width:50%"></div></div></div>
+<div><div class="flex justify-between text-xs mb-1"><span style="color:var(--v)">Customer</span><span class="mono" id="cu-pct">—%</span></div><div class="w-full h-2.5 rounded-full" style="background:var(--bg3)"><div class="h-2.5 rounded-full transition-all duration-1000" id="cu-bar" style="background:var(--v);width:50%"></div></div></div>
+</div>
+<div class="grid grid-cols-2 gap-2 text-center">
+<div class="p-2 rounded-lg" style="background:var(--bg3)"><p class="mono text-base font-bold" style="color:var(--g)" id="ag-w">0</p><p class="text-[10px]" style="color:var(--t3)">Agent Words</p></div>
+<div class="p-2 rounded-lg" style="background:var(--bg3)"><p class="mono text-base font-bold" style="color:var(--v)" id="cu-w">0</p><p class="text-[10px]" style="color:var(--t3)">Customer Words</p></div>
+</div>
+<p class="text-[10px] mt-2" style="color:var(--t3)">Ideal: 43% agent / 57% customer (Gong.io)</p>
+</div>
+<!-- Coaching -->
+<div class="card p-5">
+<h4 class="font-semibold text-sm mb-3">🧠 AI Coaching</h4>
+<div class="flex items-center gap-3 mb-3"><div class="mono text-2xl font-bold" style="color:var(--g)" id="perf-n">—</div><div><p class="text-sm font-medium" id="perf-l">—</p><p class="text-[10px]" style="color:var(--t3)">Performance Rating</p></div></div>
+<div id="str-sec" class="mb-2 hidden"><p class="text-[10px] font-medium mb-1" style="color:var(--g)">STRENGTHS:</p><div id="str-l" class="space-y-0.5"></div></div>
+<div id="imp-sec" class="mb-2 hidden"><p class="text-[10px] font-medium mb-1" style="color:var(--a)">IMPROVE:</p><div id="imp-l" class="space-y-0.5"></div></div>
+<p class="text-[10px] font-medium mb-1" style="color:var(--t3)">RECOMMENDATIONS:</p>
+<div id="rec-l" class="space-y-1.5"></div>
+</div>
+</div>
+
+<!-- Metadata -->
+<div class="card p-3 flex flex-wrap gap-5 text-xs mt-4" style="color:var(--t3)" id="meta-bar"></div>
+
+<!-- Raw JSON -->
+<details class="mt-4 card"><summary class="p-4 cursor-pointer text-sm font-medium" style="color:var(--t2)">View Raw JSON Response</summary><pre class="p-4 text-xs mono overflow-x-auto max-h-80" style="color:var(--g);border-top:1px solid var(--bdr)" id="raw-j"></pre></details>
+</div></div></div>
+
+<!-- DASHBOARD -->
+<div id="v-dash" class="v pt-20 px-6 hidden"><div class="max-w-7xl mx-auto pb-20">
+<div class="flex items-center justify-between mb-8"><div><h2 class="display text-3xl font-bold">Analytics Dashboard</h2><p class="mt-1" style="color:var(--t2)">Aggregated insights across all analyzed calls.</p></div><span class="badge bg-v" id="dc-badge">0 calls</span></div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+<div class="card p-5 text-center"><p class="text-xs font-medium uppercase tracking-wider mb-2" style="color:var(--t3)">Total Calls</p><div class="mono text-3xl font-bold" style="color:var(--g)" id="dc-tot">0</div></div>
+<div class="card p-5 text-center"><p class="text-xs font-medium uppercase tracking-wider mb-2" style="color:var(--t3)">Avg Compliance</p><div class="mono text-3xl font-bold" style="color:var(--g)" id="dc-comp">—</div></div>
+<div class="card p-5 text-center"><p class="text-xs font-medium uppercase tracking-wider mb-2" style="color:var(--t3)">Positive Sentiment</p><div class="mono text-3xl font-bold" style="color:var(--g)" id="dc-pos">—</div></div>
+<div class="card p-5 text-center"><p class="text-xs font-medium uppercase tracking-wider mb-2" style="color:var(--t3)">SOP Followed</p><div class="mono text-3xl font-bold" style="color:var(--g)" id="dc-fol">—</div></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<div class="card p-5"><h3 class="font-semibold text-sm mb-4">Payment Preferences</h3><canvas id="ch-pay" height="200"></canvas></div>
+<div class="card p-5"><h3 class="font-semibold text-sm mb-4">SOP Step Compliance</h3><canvas id="ch-sop" height="200"></canvas></div>
+</div>
+<!-- Compliance Trend + Quality Trend -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+<div class="card p-5"><h3 class="font-semibold text-sm mb-4">📈 Compliance Trend</h3><canvas id="ch-trend" height="180"></canvas></div>
+<div class="card p-5"><h3 class="font-semibold text-sm mb-4">🏆 Agent Leaderboard</h3><div id="leaderboard" class="space-y-2"><p class="text-xs" style="color:var(--t3)">Analyze multiple calls to see rankings</p></div></div>
+</div>
+<div class="card overflow-hidden"><div class="p-4" style="border-bottom:1px solid var(--bdr)"><h3 class="font-semibold text-sm">Call History</h3></div>
+<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr style="background:var(--bg3)"><th class="text-left p-3 text-xs uppercase" style="color:var(--t3)">Time</th><th class="text-left p-3 text-xs uppercase" style="color:var(--t3)">Language</th><th class="text-left p-3 text-xs uppercase" style="color:var(--t3)">Compliance</th><th class="text-left p-3 text-xs uppercase" style="color:var(--t3)">Quality</th><th class="text-left p-3 text-xs uppercase" style="color:var(--t3)">Risk</th><th class="text-left p-3 text-xs uppercase" style="color:var(--t3)">Sentiment</th></tr></thead>
+<tbody id="hist-tb"><tr><td colspan="6" class="p-8 text-center" style="color:var(--t3)">No calls analyzed yet.</td></tr></tbody></table></div></div>
+<div id="dash-empty" class="text-center py-16"><div class="text-5xl mb-4">📊</div><h3 class="text-xl font-semibold mb-2">No data yet</h3><p class="mb-6" style="color:var(--t2)">Analyze calls to see insights here.</p><button onclick="nav('anal')" class="btn-p">Analyze Your First Call</button></div>
+</div></div>
+</div>
+
+<script>
+let hist=[],cur=null,sel=null,pCh=null,sCh=null,tCh=null;
+function nav(v){document.querySelectorAll('.v').forEach(e=>e.classList.add('hidden'));document.querySelectorAll('.tab').forEach(e=>e.classList.remove('on'));document.getElementById('v-'+v).classList.remove('hidden');document.getElementById('n-'+v).classList.add('on');if(v==='dash')updDash()}
+function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML}
+function hOver(e){e.preventDefault();e.currentTarget.classList.add('drag')}
+function hLeave(e){e.currentTarget.classList.remove('drag')}
+function hDrop(e){e.preventDefault();e.currentTarget.classList.remove('drag');const f=e.dataTransfer.files[0];if(f){sel=f;showF(f)}}
+function hFile(e){const f=e.target.files[0];if(f){sel=f;showF(f)}}
+function showF(f){document.getElementById('fi').textContent=`${f.name} (${(f.size/1048576).toFixed(2)} MB)`;document.getElementById('abtn').disabled=false;document.getElementById('dz').style.borderColor='var(--g)'}
+function f2b(f){return new Promise((r,j)=>{const R=new FileReader();R.onload=()=>r(R.result.split(',')[1]);R.onerror=j;R.readAsDataURL(f)})}
+function uStep(i,s,m){s.forEach((x,j)=>{const e=document.getElementById(x);e.className='step '+(j<i?'step-ok':j===i?'step-on':'step-wait');if(j<i)e.innerHTML='✓'});document.getElementById('pstat').textContent=m[i]}
+
+async function analyze(){
+if(!sel)return;
+const lang=document.getElementById('lang').value,url=document.getElementById('api-url').value,key=document.getElementById('api-key').value;
+document.getElementById('up-sec').classList.add('hidden');document.getElementById('proc-sec').classList.remove('hidden');document.getElementById('res-sec').classList.add('hidden');
+const st=['s1','s2','s3','s4'],ms=['Decoding audio...','Transcribing speech...','Analyzing compliance...','Generating coaching...'];
+uStep(0,st,ms);
+const b64=await f2b(sel);
+// Show audio player
+const aUrl=URL.createObjectURL(sel);document.getElementById('audio-el').src=aUrl;document.getElementById('audio-player-card').style.display='block';
+uStep(1,st,ms);
+try{
+const r=await fetch(`${url}/api/call-analytics`,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key},body:JSON.stringify({language:lang,audioFormat:'mp3',audioBase64:b64})});
+uStep(2,st,ms);await new Promise(r=>setTimeout(r,400));
+const d=await r.json();uStep(3,st,ms);await new Promise(r=>setTimeout(r,400));
+cur=d;hist.push({...d,timestamp:new Date().toLocaleString()});
+render(d);document.getElementById('proc-sec').classList.add('hidden');document.getElementById('res-sec').classList.remove('hidden');
+}catch(e){alert(`API Error: ${e.message}\n\nMake sure server is running at ${url}`);document.getElementById('proc-sec').classList.add('hidden');document.getElementById('up-sec').classList.remove('hidden')}}
+
+function render(d){
+// Gauge
+const sc=d.sop_validation?.complianceScore??0;const pct=Math.round(sc*100);
+document.getElementById('gauge-pct').textContent=pct+'%';
+const off=264-(264*sc);document.getElementById('gauge-circle').style.strokeDashoffset=off;
+document.getElementById('gauge-circle').style.stroke=sc>=.8?'var(--g)':sc>=.5?'var(--a)':'var(--r)';
+const ab=document.getElementById('adh-badge');
+ab.className='badge '+(d.sop_validation?.adherenceStatus==='FOLLOWED'?'bg-g':'bg-r');ab.textContent=d.sop_validation?.adherenceStatus||'—';
+// Sentiment
+const sm={'Positive':'😊','Negative':'😞','Neutral':'😐'};
+document.getElementById('kpi-sent-e').textContent=sm[d.analytics?.sentiment]||'😐';
+document.getElementById('kpi-sent-t').textContent=d.analytics?.sentiment||'—';
+// Payment
+document.getElementById('kpi-pay').textContent=(d.analytics?.paymentPreference||'—').replace(/_/g,' ');
+const rj=d.analytics?.rejectionReason;document.getElementById('kpi-rej').textContent=rj&&rj!=='NONE'?rj.replace(/_/g,' '):'No rejection';
+// Quality + Risk from extended
+const ext=d.extended_analytics;
+if(ext?.multi_dimensional_score){
+const q=ext.multi_dimensional_score;document.getElementById('kpi-qual').textContent=q.overall_quality+'/10';
+const ql=document.getElementById('kpi-qual-lbl');ql.textContent=q.quality_label;ql.className='badge '+(q.overall_quality>=7?'bg-g':q.overall_quality>=5?'bg-a':'bg-r');
+// Scorecard bars
+const items=[{l:'Empathy',v:q.empathy,c:'var(--g)'},{l:'Professionalism',v:q.professionalism,c:'var(--v)'},{l:'Active Listening',v:q.active_listening,c:'var(--b)'},{l:'Resolution',v:q.resolution_quality,c:'var(--a)'}];
+document.getElementById('q-scores').innerHTML=items.map(s=>`<div><div class="flex justify-between text-xs mb-1"><span>${s.l}</span><span class="mono font-bold" style="color:${s.c}">${s.v}/10</span></div><div class="w-full h-2 rounded-full" style="background:var(--bg3)"><div class="h-2 rounded-full transition-all duration-1000" style="background:${s.c};width:${s.v*10}%"></div></div></div>`).join('');
+}else{document.getElementById('kpi-qual').textContent='—';document.getElementById('kpi-qual-lbl').textContent='';document.getElementById('q-scores').innerHTML='<p class="text-xs" style="color:var(--t3)">Not available</p>'}
+if(ext?.risk_detection){
+const rk=ext.risk_detection;document.getElementById('kpi-risk').textContent=rk.risk_level;
+document.getElementById('kpi-risk').style.color=rk.risk_level==='HIGH'?'var(--r)':rk.risk_level==='MEDIUM'?'var(--a)':'var(--g)';
+document.getElementById('kpi-risk-sub').textContent=`Score: ${rk.risk_score}/100`;
+const rb=document.getElementById('risk-box');rb.textContent=rk.risk_level;
+rb.style.background=rk.risk_level==='HIGH'?'rgba(239,68,68,.15)':rk.risk_level==='MEDIUM'?'rgba(245,158,11,.15)':'rgba(74,222,128,.1)';
+rb.style.color=rk.risk_level==='HIGH'?'var(--r)':rk.risk_level==='MEDIUM'?'var(--a)':'var(--g)';
+document.getElementById('risk-sc').textContent=`Score: ${rk.risk_score}/100`;
+document.getElementById('risk-esc').textContent=`Escalation: ${Math.round(rk.escalation_probability*100)}%`;
+if(rk.risk_triggers?.length>0){document.getElementById('risk-trigs').classList.remove('hidden');document.getElementById('risk-ok').classList.add('hidden');document.getElementById('risk-tl').innerHTML=rk.risk_triggers.map(t=>`<span class="badge bg-r">${t}</span>`).join('')}
+else{document.getElementById('risk-trigs').classList.add('hidden');document.getElementById('risk-ok').classList.remove('hidden')}
+}else{document.getElementById('kpi-risk').textContent='—';document.getElementById('kpi-risk-sub').textContent=''}
+// SOP
+const sops=[{k:'greeting',l:'Greeting',i:'👋'},{k:'identification',l:'Identification',i:'🪪'},{k:'problemStatement',l:'Problem Statement',i:'❓'},{k:'solutionOffering',l:'Solution Offering',i:'💡'},{k:'closing',l:'Closing',i:'🤝'}];
+document.getElementById('sop-list').innerHTML=sops.map(s=>{const v=d.sop_validation?.[s.k];return`<div class="flex items-center justify-between p-2 rounded-lg" style="background:var(--bg3)"><div class="flex items-center gap-2"><span>${s.i}</span><span class="text-sm">${s.l}</span></div><span class="font-bold" style="color:${v?'var(--g)':'var(--r)'}">${v?'✅':'❌'}</span></div>`}).join('');
+document.getElementById('sop-exp').textContent=d.sop_validation?.explanation||'';
+// Summary
+document.getElementById('sum-text').textContent=d.summary||'No summary.';
+// Transcript
+const tr=d.transcript||'';document.getElementById('tlen').textContent=tr.length+' chars';
+const lines=tr.split('\n').filter(l=>l.trim());
+document.getElementById('tbox').innerHTML=lines.length>1?lines.map(l=>{const ia=l.toLowerCase().startsWith('agent');return`<div class="tl ${ia?'ag':'cu'} mb-1"><span class="text-sm">${esc(l)}</span></div>`}).join(''):`<div class="p-3 text-sm" style="color:var(--t2)">${esc(tr)}</div>`;
+// Keywords
+document.getElementById('kw-box').innerHTML=(d.keywords||[]).map(k=>`<span class="badge bg-g">${esc(k)}</span>`).join('');
+// Extended section
+if(ext){document.getElementById('ext-row').style.display='grid';
+// Talk patterns
+if(ext.talk_patterns){const tp=ext.talk_patterns;const ap=Math.round(tp.agent_talk_ratio*100),cp=Math.round(tp.customer_talk_ratio*100);
+document.getElementById('ag-pct').textContent=ap+'%';document.getElementById('cu-pct').textContent=cp+'%';
+document.getElementById('ag-bar').style.width=ap+'%';document.getElementById('cu-bar').style.width=cp+'%';
+document.getElementById('ag-w').textContent=tp.agent_word_count;document.getElementById('cu-w').textContent=tp.customer_word_count}
+// Coaching
+if(ext.coaching){const c=ext.coaching;document.getElementById('perf-n').textContent=c.overall_performance+'/10';document.getElementById('perf-l').textContent=c.performance_label;
+if(c.strengths?.length){document.getElementById('str-sec').classList.remove('hidden');document.getElementById('str-l').innerHTML=c.strengths.map(s=>`<p class="text-[11px]" style="color:var(--g)">✓ ${s}</p>`).join('')}
+if(c.areas_for_improvement?.length){document.getElementById('imp-sec').classList.remove('hidden');document.getElementById('imp-l').innerHTML=c.areas_for_improvement.map(s=>`<p class="text-[11px]" style="color:var(--a)">△ ${s}</p>`).join('')}
+document.getElementById('rec-l').innerHTML=(c.recommendations||[]).map((r,i)=>`<div class="p-2 rounded-lg text-[11px]" style="background:var(--bg3);color:var(--t2)"><span class="font-bold" style="color:var(--g)">${i+1}.</span> ${r}</div>`).join('')}
+}else{document.getElementById('ext-row').style.display='none'}
+// Metadata
+if(d._metadata){const m=d._metadata;document.getElementById('meta-bar').innerHTML=`<span>ID: <span class="mono" style="color:var(--g)">${m.call_id}</span></span><span>Time: <span class="mono" style="color:var(--g)">${m.processing_time_seconds}s</span></span><span>Audio: <span class="mono" style="color:var(--g)">${(m.audio_size_bytes/1024).toFixed(0)}KB</span></span><span>API: <span class="mono" style="color:var(--g)">${m.api_version}</span></span>`}
+document.getElementById('raw-j').textContent=JSON.stringify(d,null,2)}
+
+function reset(){sel=null;document.getElementById('af').value='';document.getElementById('fi').textContent='';document.getElementById('abtn').disabled=true;document.getElementById('dz').style.borderColor='';document.getElementById('up-sec').classList.remove('hidden');document.getElementById('res-sec').classList.add('hidden');document.getElementById('audio-player-card').style.display='none'}
+function dlJSON(){if(!cur)return;const b=new Blob([JSON.stringify(cur,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='callsense-analysis.json';a.click();URL.revokeObjectURL(u)}
+
+function updDash(){
+const n=hist.length;document.getElementById('dc-badge').textContent=n+' calls';document.getElementById('dc-tot').textContent=n;
+if(!n){document.getElementById('dash-empty').classList.remove('hidden');return}
+document.getElementById('dash-empty').classList.add('hidden');
+document.getElementById('dc-comp').textContent=Math.round(hist.reduce((s,c)=>s+(c.sop_validation?.complianceScore||0),0)/n*100)+'%';
+document.getElementById('dc-pos').textContent=Math.round(hist.filter(c=>c.analytics?.sentiment==='Positive').length/n*100)+'%';
+document.getElementById('dc-fol').textContent=Math.round(hist.filter(c=>c.sop_validation?.adherenceStatus==='FOLLOWED').length/n*100)+'%';
+// Charts
+const pc={EMI:0,FULL_PAYMENT:0,PARTIAL_PAYMENT:0,DOWN_PAYMENT:0};hist.forEach(c=>{const p=c.analytics?.paymentPreference;if(p&&pc[p]!==undefined)pc[p]++});
+const ctx1=document.getElementById('ch-pay');if(pCh)pCh.destroy();
+pCh=new Chart(ctx1,{type:'doughnut',data:{labels:['EMI','Full','Partial','Down'],datasets:[{data:Object.values(pc),backgroundColor:['#4ADE80','#A78BFA','#F59E0B','#3B82F6'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#9CA3AF',padding:12,font:{size:11}}}}}});
+const sc={greeting:0,identification:0,problemStatement:0,solutionOffering:0,closing:0};hist.forEach(c=>{Object.keys(sc).forEach(k=>{if(c.sop_validation?.[k])sc[k]++})});
+const ctx2=document.getElementById('ch-sop');if(sCh)sCh.destroy();
+sCh=new Chart(ctx2,{type:'bar',data:{labels:['Greeting','ID','Problem','Solution','Closing'],datasets:[{data:Object.values(sc).map(c=>Math.round(c/n*100)),backgroundColor:'rgba(74,222,128,.2)',borderColor:'#4ADE80',borderWidth:2,borderRadius:6}]},options:{responsive:true,scales:{y:{beginAtZero:true,max:100,ticks:{color:'#6B7280'},grid:{color:'#1F2937'}},x:{ticks:{color:'#9CA3AF',font:{size:11}},grid:{display:false}}},plugins:{legend:{display:false}}}});
+// History table
+document.getElementById('hist-tb').innerHTML=hist.map(c=>{const s=Math.round((c.sop_validation?.complianceScore||0)*100);const sc=s>=80?'var(--g)':s>=50?'var(--a)':'var(--r)';const se={'Positive':'😊','Negative':'😞','Neutral':'😐'};const q=c.extended_analytics?.multi_dimensional_score?.overall_quality;const rl=c.extended_analytics?.risk_detection?.risk_level;
+return`<tr style="border-top:1px solid var(--bdr)"><td class="p-3 mono text-xs">${c.timestamp||'—'}</td><td class="p-3 text-sm">${c.language||'—'}</td><td class="p-3"><span class="mono font-bold" style="color:${sc}">${s}%</span></td><td class="p-3 mono">${q?q+'/10':'—'}</td><td class="p-3"><span class="badge ${rl==='HIGH'?'bg-r':rl==='MEDIUM'?'bg-a':'bg-g'}">${rl||'—'}</span></td><td class="p-3">${se[c.analytics?.sentiment]||'😐'} ${c.analytics?.sentiment||'—'}</td></tr>`}).join('');
+// Compliance Trend Chart
+const ctx3=document.getElementById('ch-trend');if(tCh)tCh.destroy();
+const trendData=hist.map((c,i)=>Math.round((c.sop_validation?.complianceScore||0)*100));
+const trendLabels=hist.map((c,i)=>`Call ${i+1}`);
+tCh=new Chart(ctx3,{type:'line',data:{labels:trendLabels,datasets:[{label:'Compliance %',data:trendData,borderColor:'#4ADE80',backgroundColor:'rgba(74,222,128,.1)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:'#4ADE80'},{label:'Threshold (70%)',data:trendLabels.map(()=>70),borderColor:'rgba(245,158,11,.5)',borderDash:[5,5],pointRadius:0,fill:false}]},options:{responsive:true,scales:{y:{beginAtZero:true,max:100,ticks:{color:'#6B7280'},grid:{color:'#1F2937'}},x:{ticks:{color:'#9CA3AF',font:{size:10}},grid:{display:false}}},plugins:{legend:{labels:{color:'#9CA3AF',font:{size:10}}}}}});
+// Leaderboard
+const lb=document.getElementById('leaderboard');
+if(n>=1){const sorted=[...hist].sort((a,b)=>(b.sop_validation?.complianceScore||0)-(a.sop_validation?.complianceScore||0));
+lb.innerHTML=sorted.slice(0,5).map((c,i)=>{const s=Math.round((c.sop_validation?.complianceScore||0)*100);const q=c.extended_analytics?.multi_dimensional_score?.overall_quality||0;const col=s>=80?'var(--g)':s>=50?'var(--a)':'var(--r)';
+return`<div class="flex items-center gap-3 p-2 rounded-lg" style="background:var(--bg3)"><span class="mono font-bold text-sm" style="color:${i===0?'var(--g)':'var(--t3)'};">#${i+1}</span><div class="flex-1"><div class="flex justify-between text-xs mb-1"><span>Call ${hist.indexOf(c)+1} (${c.language})</span><span class="mono font-bold" style="color:${col}">${s}%</span></div><div class="w-full h-1.5 rounded-full" style="background:var(--bg)"><div class="h-1.5 rounded-full" style="background:${col};width:${s}%"></div></div></div><span class="mono text-xs" style="color:var(--b)">${q}/10</span></div>`}).join('')}}
+
+nav('land');
+</script>
+</body>
+</html>
